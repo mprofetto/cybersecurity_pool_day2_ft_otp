@@ -48,6 +48,7 @@ def encrypt_key(filename):
                 keyfile.write(encrypted_data)
     except Exception as e:
         print('an error occured:', e)
+        exit(1)
 
 def decrypt_key(filename):
     try:
@@ -57,6 +58,7 @@ def decrypt_key(filename):
             return result
     except Exception as e:
         print('an error occured:', e)
+        exit(1)
 
 def generate_time_token():
     return struct.pack(">Q", int(time.time()) // code_validity_time)
@@ -88,13 +90,17 @@ def format_code(code):
     # We keep the rest of the max_size the code will be and fill the gap if the code with zero if code is too little
 
 def generate_otp(filename):
-    time_token = generate_time_token()
-    key = decrypt_key(filename).encode()
-    my_hash = generate_hash(base64.b32decode(key), time_token)
-    hmac_digest = my_hash.digest()
-    offset = get_offset(my_hash)
-    code = generate_code(hmac_digest, offset)
-    return format_code(code)
+    try:
+        time_token = generate_time_token()
+        key = decrypt_key(filename).encode()
+        my_hash = generate_hash(base64.b32decode(key), time_token)
+        hmac_digest = my_hash.digest()
+        offset = get_offset(my_hash)
+        code = generate_code(hmac_digest, offset)
+        return format_code(code)
+    except Exception as e:
+        print('an error occured:', e)
+        exit(1)
     # TOTP will generate a code by deriving it from the secret and the message
     # The principle consist in a succession of operation so complex that it will be almost impossible to revert in the code validity time
     # The client send a code and the server will just redo the operation an check if the result matches the client code
